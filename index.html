@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trend Radar ID - Prediksi Tren Viral</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.7); }
+      50% { box-shadow: 0 0 0 10px rgba(34, 211, 238, 0); }
+    }
+    .pulse-glow { animation: pulse-glow 2s infinite; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+  <div id="app"></div>
+
+  <script>
+    // ============================================
+    // TREND RADAR ID - All-in-one Dashboard
+    // ============================================
+
+    // Mock data - nanti akan diganti dengan real data dari GitHub Actions
+    const mockTrends = [
+      { id: 1, term: 'AI Deepfake', category: 'tech', source: 'google_trends', momentum: 8.9, novelty: 7.2, searchVolume: 125000, change: '+42%', prediction: 'viral_yes', alert: true, content: 'Deepfake technology discussions trending across tech communities' },
+      { id: 2, term: 'Sustainable Fashion', category: 'fashion', source: 'tiktok', momentum: 7.5, novelty: 6.1, searchVolume: 89000, change: '+28%', prediction: 'viral_maybe', alert: false, content: 'Eco-friendly fashion creators gaining momentum' },
+      { id: 3, term: 'Indonesian E-commerce', category: 'commerce', source: 'google_trends', momentum: 8.2, novelty: 5.8, searchVolume: 156000, change: '+35%', prediction: 'viral_likely', alert: true, content: 'Online shopping trends in Indonesia surging' },
+      { id: 4, term: 'Gen Z Humor Memes', category: 'entertainment', source: 'reddit', momentum: 7.8, novelty: 8.5, searchVolume: 67000, change: '+19%', prediction: 'viral_yes', alert: true, content: 'New meme format spreading rapidly on social platforms' },
+      { id: 5, term: 'Tech IPO Speculation', category: 'news', source: 'twitter', momentum: 6.9, novelty: 7.0, searchVolume: 45000, change: '+22%', prediction: 'viral_maybe', alert: false, content: 'Breaking news about upcoming tech IPOs' },
+      { id: 6, term: 'Kolaborasi Brand Lokal', category: 'commerce', source: 'instagram', momentum: 7.3, novelty: 6.8, searchVolume: 72000, change: '+18%', prediction: 'viral_maybe', alert: false, content: 'Indonesian brand collaborations gaining traction' },
+      { id: 7, term: 'Crypto Regulation', category: 'news', source: 'twitter', momentum: 7.1, novelty: 6.5, searchVolume: 98000, change: '+25%', prediction: 'viral_maybe', alert: false, content: 'New crypto regulations announced in Asia' },
+      { id: 8, term: 'Gaming Tournament', category: 'entertainment', source: 'youtube', momentum: 8.0, novelty: 6.9, searchVolume: 134000, change: '+31%', prediction: 'viral_likely', alert: true, content: 'Major esports tournament gaining viewership' },
+    ];
+
+    // State
+    let state = {
+      trends: mockTrends,
+      selectedCategory: 'all',
+      sortBy: 'momentum',
+      lastUpdate: new Date(),
+      autoRefresh: true
+    };
+
+    // Category labels
+    const categoryLabels = {
+      all: 'Semua',
+      tech: 'Tech',
+      fashion: 'Fashion',
+      commerce: 'Bisnis',
+      entertainment: 'Entertainment',
+      news: 'Berita'
+    };
+
+    const predictionColors = {
+      'viral_yes': 'from-red-500 to-pink-500',
+      'viral_likely': 'from-orange-500 to-amber-500',
+      'viral_maybe': 'from-blue-500 to-cyan-500'
+    };
+
+    const predictionLabels = {
+      'viral_yes': '🔥 Akan Viral',
+      'viral_likely': '⚡ Mungkin Viral',
+      'viral_maybe': '💭 Masih Monitor'
+    };
+
+    // Filter & sort logic
+    function getFilteredTrends() {
+      let result = [...state.trends];
+      
+      if (state.selectedCategory !== 'all') {
+        result = result.filter(t => t.category === state.selectedCategory);
+      }
+      
+      result.sort((a, b) => {
+        switch(state.sortBy) {
+          case 'momentum': return b.momentum - a.momentum;
+          case 'novelty': return b.novelty - a.novelty;
+          case 'volume': return b.searchVolume - a.searchVolume;
+          case 'prediction': {
+            const order = { 'viral_yes': 3, 'viral_likely': 2, 'viral_maybe': 1 };
+            return (order[b.prediction] || 0) - (order[a.prediction] || 0);
+          }
+          default: return 0;
+        }
+      });
+      
+      return result;
+    }
+
+    // Render function
+    function render() {
+      const filtered = getFilteredTrends();
+      const categories = ['all', 'tech', 'fashion', 'commerce', 'entertainment', 'news'];
+      
+      const html = `
+        <div class="min-h-screen p-6">
+          <div class="max-w-7xl mx-auto mb-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-3">
+                <div class="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h1 class="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Trend Radar ID</h1>
+                  <p class="text-sm text-slate-400">Prediksi tren viral sebelum meledak</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-slate-500">Last update</p>
+                <p class="text-sm font-mono text-cyan-400">${state.lastUpdate.toLocaleTimeString('id-ID')}</p>
+              </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex flex-wrap gap-4 items-center">
+              <!-- Category Filter -->
+              <div class="flex gap-2 flex-wrap">
+                ${categories.map(cat => `
+                  <button
+                    onclick="updateState({selectedCategory: '${cat}'})"
+                    class="px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                      state.selectedCategory === cat
+                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/50'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    }"
+                  >
+                    ${categoryLabels[cat]}
+                  </button>
+                `).join('')}
+              </div>
+
+              <!-- Sort Dropdown -->
+              <select
+                onchange="updateState({sortBy: this.value})"
+                class="px-4 py-2 bg-slate-700 rounded-lg text-sm border border-slate-600 hover:border-cyan-500 focus:outline-none focus:border-cyan-500 cursor-pointer"
+              >
+                <option value="momentum" ${state.sortBy === 'momentum' ? 'selected' : ''}>Sortir: Momentum</option>
+                <option value="novelty" ${state.sortBy === 'novelty' ? 'selected' : ''}>Sortir: Novelty</option>
+                <option value="volume" ${state.sortBy === 'volume' ? 'selected' : ''}>Sortir: Volume</option>
+                <option value="prediction" ${state.sortBy === 'prediction' ? 'selected' : ''}>Sortir: Prediksi</option>
+              </select>
+
+              <!-- Auto-refresh toggle -->
+              <button
+                onclick="updateState({autoRefresh: !state.autoRefresh})"
+                class="p-2 rounded-lg transition-all ${state.autoRefresh ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-400'}"
+                title="Auto-refresh setiap jam"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Grid -->
+          <div class="max-w-7xl mx-auto grid gap-4">
+            ${filtered.map(trend => `
+              <div class="group relative bg-slate-800/50 backdrop-blur border border-slate-700 hover:border-cyan-500/50 rounded-xl p-5 transition-all hover:shadow-lg hover:shadow-cyan-500/20 hover:-translate-y-1">
+                <!-- Alert badge -->
+                ${trend.alert ? `
+                  <div class="absolute top-3 right-3">
+                    <div class="relative">
+                      <div class="absolute inset-0 bg-red-500 rounded-full animate-pulse opacity-50"></div>
+                      <div class="relative bg-red-500 p-2 rounded-full">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                ` : ''}
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <!-- Left: Trend Info -->
+                  <div class="md:col-span-1">
+                    <div class="flex items-start gap-2 mb-3">
+                      <svg class="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L5.257 19.236A4 4 0 005 15.25V5a2 2 0 012-2h10a2 2 0 012 2z"></path>
+                      </svg>
+                      <div>
+                        <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">${trend.term}</h3>
+                        <p class="text-xs text-slate-400 mt-1">${trend.source.replace(/_/g, ' ').toUpperCase()}</p>
+                      </div>
+                    </div>
+                    <p class="text-sm text-slate-400 leading-relaxed">${trend.content}</p>
+                  </div>
+
+                  <!-- Center: Metrics -->
+                  <div class="md:col-span-1">
+                    <div class="space-y-3">
+                      <!-- Momentum -->
+                      <div>
+                        <div class="flex justify-between items-center mb-1">
+                          <span class="text-xs font-semibold text-slate-400">MOMENTUM</span>
+                          <span class="text-sm font-bold text-cyan-400">${trend.momentum.toFixed(1)}</span>
+                        </div>
+                        <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all"
+                            style="width: ${(trend.momentum / 10) * 100}%"
+                          ></div>
+                        </div>
+                      </div>
+
+                      <!-- Novelty -->
+                      <div>
+                        <div class="flex justify-between items-center mb-1">
+                          <span class="text-xs font-semibold text-slate-400">NOVELTY</span>
+                          <span class="text-sm font-bold text-purple-400">${trend.novelty.toFixed(1)}</span>
+                        </div>
+                        <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
+                            style="width: ${(trend.novelty / 10) * 100}%"
+                          ></div>
+                        </div>
+                      </div>
+
+                      <!-- Change -->
+                      <div class="pt-2 border-t border-slate-700">
+                        <p class="text-xs text-slate-400">Volume Change</p>
+                        <p class="text-lg font-bold text-green-400">${trend.change}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right: Prediction -->
+                  <div class="md:col-span-1 flex flex-col justify-between">
+                    <div class="bg-gradient-to-br ${predictionColors[trend.prediction]} p-4 rounded-lg shadow-lg">
+                      <p class="text-xs font-semibold text-white/80 mb-1">PREDIKSI</p>
+                      <p class="text-lg font-bold text-white">${predictionLabels[trend.prediction]}</p>
+                    </div>
+                    
+                    <div class="mt-3 text-xs text-slate-400">
+                      <p>Search Vol: <span class="font-mono text-cyan-400">${(trend.searchVolume / 1000).toFixed(0)}K</span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Footer -->
+          <div class="max-w-7xl mx-auto mt-12 p-4 bg-slate-800/50 rounded-lg border border-slate-700 text-xs text-slate-400">
+            <p>
+              📊 <strong>Monitoring:</strong> Google Trends (ID) | TikTok | Twitter/X | Reddit | News APIs
+              <br/>
+              🔄 <strong>Status:</strong> Proof of Concept (Mock Data) | Next: Real data via GitHub Actions
+              <br/>
+              🎯 <strong>Scoring:</strong> Momentum (growth rate) + Novelty (newness) + Volume
+            </p>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('app').innerHTML = html;
+    }
+
+    // Update state & re-render
+    function updateState(updates) {
+      state = { ...state, ...updates };
+      render();
+    }
+
+    // Manual refresh
+    function manualRefresh() {
+      state.lastUpdate = new Date();
+      render();
+    }
+
+    // Initial render
+    render();
+
+    // Auto-refresh simulation (every hour)
+    setInterval(() => {
+      if (state.autoRefresh) {
+        state.lastUpdate = new Date();
+        // Simulate momentum updates
+        state.trends = state.trends.map(t => ({
+          ...t,
+          momentum: Math.max(3, Math.min(10, t.momentum + (Math.random() - 0.5) * 0.5))
+        }));
+        render();
+      }
+    }, 3600000); // 1 hour
+  </script>
+</body>
+</html>
