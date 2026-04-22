@@ -14,37 +14,29 @@
   </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-  <div id="app"></div>
+  <div id="app">
+    <div class="min-h-screen flex items-center justify-center">
+      <div class="text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+        <p class="text-slate-400">Loading real trend data...</p>
+      </div>
+    </div>
+  </div>
 
   <script>
     // ============================================
-    // TREND RADAR ID - All-in-one Dashboard
+    // TREND RADAR ID - Live Dashboard
+    // Loads REAL data from data/trends.json (GitHub Actions generated)
     // ============================================
 
-    // Mock data - CUSTOMIZED untuk Lenno's businesses (Commerce, Beauty, F&B, Entertainment)
-    let mockTrends = [];
-
-    // Load real data from trends.json
-    fetch('./data/trends.json')
-      .then(r => r.json())
-      .then(data => {
-        if (data.trends && data.trends.length > 0) {
-          mockTrends = data.trends;
-          render();
-        }
-      })
-      .catch(e => console.log('Using fallback data'));
-
-    // State
     let state = {
-      trends: mockTrends,
+      trends: [],
       selectedCategory: 'all',
       sortBy: 'momentum',
       lastUpdate: new Date(),
       autoRefresh: true
     };
 
-    // Category labels
     const categoryLabels = {
       all: 'Semua',
       tech: 'Tech',
@@ -68,7 +60,44 @@
       'viral_maybe': '💭 Masih Monitor'
     };
 
-    // Filter & sort logic
+    // ============================================
+    // LOAD REAL DATA
+    // ============================================
+    function loadData() {
+      fetch('/data/trends.json')
+        .then(r => r.json())
+        .then(data => {
+          if (data.trends && data.trends.length > 0) {
+            state.trends = data.trends;
+            state.lastUpdate = new Date(data.timestamp);
+            render();
+          } else {
+            showError('No trends data found');
+          }
+        })
+        .catch(e => {
+          console.error('Data load error:', e);
+          showError('Failed to load trend data');
+        });
+    }
+
+    function showError(msg) {
+      document.getElementById('app').innerHTML = `
+        <div class="min-h-screen flex items-center justify-center p-6">
+          <div class="text-center">
+            <div class="text-6xl mb-4">⚠️</div>
+            <h1 class="text-2xl font-bold text-white mb-2">Oops!</h1>
+            <p class="text-slate-400 mb-4">${msg}</p>
+            <p class="text-sm text-slate-500">Make sure data/trends.json exists in repository</p>
+            <button onclick="loadData()" class="mt-4 px-4 py-2 bg-cyan-600 rounded-lg hover:bg-cyan-700">Retry</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // ============================================
+    // FILTERING & SORTING
+    // ============================================
     function getFilteredTrends() {
       let result = [...state.trends];
       
@@ -92,7 +121,9 @@
       return result;
     }
 
-    // Render function
+    // ============================================
+    // RENDER
+    // ============================================
     function render() {
       const filtered = getFilteredTrends();
       const categories = ['all', 'commerce', 'beauty', 'fnb', 'entertainment', 'tech', 'fashion'];
@@ -148,11 +179,11 @@
                 <option value="prediction" ${state.sortBy === 'prediction' ? 'selected' : ''}>Sortir: Prediksi</option>
               </select>
 
-              <!-- Auto-refresh toggle -->
+              <!-- Refresh button -->
               <button
-                onclick="updateState({autoRefresh: !state.autoRefresh})"
-                class="p-2 rounded-lg transition-all ${state.autoRefresh ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-400'}"
-                title="Auto-refresh setiap jam"
+                onclick="loadData()"
+                class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all"
+                title="Refresh data"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -163,7 +194,11 @@
 
           <!-- Main Grid -->
           <div class="max-w-7xl mx-auto grid gap-4">
-            ${filtered.map(trend => `
+            ${filtered.length === 0 ? `
+              <div class="text-center py-12">
+                <p class="text-slate-400">No trends found for selected category</p>
+              </div>
+            ` : filtered.map(trend => `
               <div class="group relative bg-slate-800/50 backdrop-blur border border-slate-700 hover:border-cyan-500/50 rounded-xl p-5 transition-all hover:shadow-lg hover:shadow-cyan-500/20 hover:-translate-y-1">
                 <!-- Alert badge -->
                 ${trend.alert ? `
@@ -252,9 +287,9 @@
           <!-- Footer -->
           <div class="max-w-7xl mx-auto mt-12 p-4 bg-slate-800/50 rounded-lg border border-slate-700 text-xs text-slate-400">
             <p>
-              📊 <strong>Monitoring:</strong> Google Trends (ID) | TikTok | Twitter/X | Reddit | News APIs
+              📊 <strong>Sources:</strong> Google Trends (ID) | TikTok | Twitter/X | Reddit | News APIs
               <br/>
-              🔄 <strong>Status:</strong> Proof of Concept (Mock Data) | Next: Real data via GitHub Actions
+              🔄 <strong>Status:</strong> LIVE - Real data via GitHub Actions (updated hourly)
               <br/>
               🎯 <strong>Scoring:</strong> Momentum (growth rate) + Novelty (newness) + Volume
             </p>
@@ -271,27 +306,14 @@
       render();
     }
 
-    // Manual refresh
-    function manualRefresh() {
-      state.lastUpdate = new Date();
-      render();
-    }
+    // ============================================
+    // INIT
+    // ============================================
+    loadData();
 
-    // Initial render
-    render();
-
-    // Auto-refresh simulation (every hour)
-    setInterval(() => {
-      if (state.autoRefresh) {
-        state.lastUpdate = new Date();
-        // Simulate momentum updates
-        state.trends = state.trends.map(t => ({
-          ...t,
-          momentum: Math.max(3, Math.min(10, t.momentum + (Math.random() - 0.5) * 0.5))
-        }));
-        render();
-      }
-    }, 3600000); // 1 hour
+    // Refresh every hour
+    setInterval(loadData, 3600000);
   </script>
 </body>
 </html>
+
