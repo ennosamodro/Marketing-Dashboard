@@ -22,30 +22,18 @@
     // ============================================
 
     // Mock data - CUSTOMIZED untuk Lenno's businesses (Commerce, Beauty, F&B, Entertainment)
-    const mockTrends = [
-      // COMMERCE TRENDS
-      { id: 1, term: 'Belanja Online Flash Sale', category: 'commerce', source: 'google_trends', momentum: 9.1, novelty: 6.2, searchVolume: 245000, change: '+48%', prediction: 'viral_yes', alert: true, content: 'Flash sale trends meningkat drastis — Panda Lovely opportunity' },
-      { id: 2, term: 'Live Shopping Indonesia', category: 'commerce', source: 'tiktok', momentum: 8.7, novelty: 7.8, searchVolume: 189000, change: '+52%', prediction: 'viral_yes', alert: true, content: 'Live shopping format booming di Indonesia — creator kolaborasi' },
-      { id: 3, term: 'Produk Kimia Rumahan', category: 'commerce', source: 'google_trends', momentum: 7.9, novelty: 5.4, searchVolume: 156000, change: '+35%', prediction: 'viral_likely', alert: true, content: 'DIY chemistry products trending — direct fit untuk Bromen' },
-      { id: 4, term: 'B2B Marketplace Indonesia', category: 'commerce', source: 'instagram', momentum: 7.2, novelty: 6.1, searchVolume: 98000, change: '+28%', prediction: 'viral_likely', alert: false, content: 'Bisnis ke bisnis platform gaining traction untuk distributor' },
+    let mockTrends = [];
 
-      // BEAUTY TRENDS
-      { id: 5, term: 'Clean Beauty Movement', category: 'beauty', source: 'instagram', momentum: 8.4, novelty: 7.5, searchVolume: 167000, change: '+44%', prediction: 'viral_yes', alert: true, content: 'Natural beauty products trending — sustainable angle populer' },
-      { id: 6, term: 'Skincare Routine Challenge', category: 'beauty', source: 'tiktok', momentum: 8.2, novelty: 8.1, searchVolume: 134000, change: '+39%', prediction: 'viral_yes', alert: true, content: 'Viral skincare challenges — content creation opportunity' },
-      { id: 7, term: 'Korean Beauty Indonesia', category: 'beauty', source: 'instagram', momentum: 7.6, novelty: 6.3, searchVolume: 112000, change: '+31%', prediction: 'viral_likely', alert: false, content: 'K-beauty products trending strong di pasar Indonesia' },
-
-      // F&B TRENDS (Sirtanio)
-      { id: 8, term: 'Cloud Kitchen Delivery', category: 'fnb', source: 'google_trends', momentum: 8.8, novelty: 7.2, searchVolume: 198000, change: '+51%', prediction: 'viral_yes', alert: true, content: 'Ghost kitchen + delivery model meledak — Sirtanio positioning' },
-      { id: 9, term: 'Healthy Fast Food', category: 'fnb', source: 'tiktok', momentum: 8.5, novelty: 7.6, searchVolume: 145000, change: '+42%', prediction: 'viral_yes', alert: true, content: 'Healthy meal prep viral — F&B market transformation' },
-      { id: 10, term: 'Warung Makan Digital', category: 'fnb', source: 'instagram', momentum: 7.8, novelty: 6.8, searchVolume: 121000, change: '+35%', prediction: 'viral_likely', alert: true, content: 'Traditional food x digital platform — hybrid model trending' },
-      { id: 11, term: 'Food Packaging Eco', category: 'fnb', source: 'google_trends', momentum: 7.4, novelty: 6.9, searchVolume: 89000, change: '+26%', prediction: 'viral_likely', alert: false, content: 'Sustainable packaging untuk F&B — consumer concern rising' },
-
-      // ENTERTAINMENT/CONTENT TRENDS
-      { id: 12, term: 'Creator Kolaborasi Indonesia', category: 'entertainment', source: 'youtube', momentum: 8.6, novelty: 7.4, searchVolume: 167000, change: '+46%', prediction: 'viral_yes', alert: true, content: 'Creator collaborations viral — content team opportunity' },
-      { id: 13, term: 'Short-form Content Dominasi', category: 'entertainment', source: 'tiktok', momentum: 8.9, novelty: 8.2, searchVolume: 203000, change: '+49%', prediction: 'viral_yes', alert: true, content: 'Shorts/Reels format mengalahkan long-form — content strategy shift' },
-      { id: 14, term: 'Meme Lokal Indonesia', category: 'entertainment', source: 'reddit', momentum: 8.3, novelty: 8.7, searchVolume: 145000, change: '+38%', prediction: 'viral_yes', alert: true, content: 'Local meme culture booming — humor relatability tinggi' },
-      { id: 15, term: 'Podcast Indonesia Tumbuh', category: 'entertainment', source: 'spotify', momentum: 7.5, novelty: 6.8, searchVolume: 98000, change: '+29%', prediction: 'viral_likely', alert: false, content: 'Podcast format gaining audience — new content medium' },
-    ];
+    // Load real data from trends.json
+    fetch('./data/trends.json')
+      .then(r => r.json())
+      .then(data => {
+        if (data.trends && data.trends.length > 0) {
+          mockTrends = data.trends;
+          render();
+        }
+      })
+      .catch(e => console.log('Using fallback data'));
 
     // State
     let state = {
