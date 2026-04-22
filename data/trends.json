@@ -1,32 +1,5 @@
 {
-  "timestamp": "2026-04-22T05:08:29.583269",
-  "total_trends": 2,
-  "trends": [
-    {
-      "id": 1,
-      "term": "Indonesian Community",
-      "category": "tech",
-      "source": "reddit",
-      "momentum": 6.8,
-      "novelty": 6.2,
-      "searchVolume": 55000,
-      "change": "+12%",
-      "prediction": "viral_maybe",
-      "alert": false,
-      "content": "Trending di r/indonesia"
-    },
-    {
-      "id": 2,
-      "term": "Tech Discussion",
-      "category": "tech",
-      "source": "reddit",
-      "momentum": 6.8,
-      "novelty": 6.2,
-      "searchVolume": 55000,
-      "change": "+12%",
-      "prediction": "viral_maybe",
-      "alert": false,
-      "content": "Trending di r/tech"
-    }
-  ]
+  "timestamp": "2026-04-22T05:13:12.747930",
+  "total_trends": 0,
+  "trends": []
 }
