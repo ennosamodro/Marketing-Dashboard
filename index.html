@@ -64,7 +64,7 @@
     // LOAD REAL DATA
     // ============================================
     function loadData() {
-      fetch('/data/trends.json')
+      fetch('data/trends.json')
         .then(r => r.json())
         .then(data => {
           if (data.trends && data.trends.length > 0) {
