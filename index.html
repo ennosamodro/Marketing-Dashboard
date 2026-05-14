@@ -1,326 +1,895 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trend Radar ID - Prediksi Tren Viral</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.7); }
-      50% { box-shadow: 0 0 0 10px rgba(34, 211, 238, 0); }
-    }
-    .pulse-glow { animation: pulse-glow 2s infinite; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Concept Generator — Akar Creative OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg: #182018;
+  --panel: #1e2a1e;
+  --panel2: #243024;
+  --border: rgba(160,200,120,0.12);
+  --cream: #f0ede6;
+  --muted: #7a8a70;
+  --amber: #c8892a;
+  --amber-light: #e8a840;
+  --sage: #7a9e7a;
+  --sage-light: #a8c4a8;
+  --claude-c: #c8892a;
+  --gpt-c: #4aae8a;
+  --dual-c: #8a7adf;
+}
+
+body {
+  font-family: 'Instrument Sans', sans-serif;
+  background: var(--bg);
+  color: var(--cream);
+  min-height: 100vh;
+}
+
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+/* HEADER */
+header {
+  padding: 36px 0 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.brand-dot {
+  width: 32px; height: 32px;
+  background: var(--amber);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 14px; color: var(--bg); font-weight: 700;
+}
+
+.brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 11px; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--sage-light);
+}
+
+.ver-tag {
+  margin-left: auto;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 2px 10px; border-radius: 20px;
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(26px, 5vw, 38px);
+  font-weight: 400; color: var(--cream); line-height: 1.2;
+}
+
+h1 em { font-style: italic; color: var(--amber-light); }
+
+.tagline {
+  margin-top: 6px; font-size: 12px;
+  color: var(--muted); letter-spacing: 0.05em;
+}
+
+/* SECTION LABEL */
+.slabel {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--amber);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.slabel::after { content:''; flex:1; height:1px; background: var(--border); }
+
+/* MODE CARDS */
+.modes { margin-bottom: 28px; }
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.mc {
+  background: var(--panel);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  text-align: center;
+  user-select: none;
+}
+
+.mc:hover { border-color: var(--amber); background: var(--panel2); }
+.mc.sel-claude { border-color: var(--claude-c); background: var(--panel2); box-shadow: 0 0 0 1px var(--claude-c); }
+.mc.sel-gpt { border-color: var(--gpt-c); background: var(--panel2); box-shadow: 0 0 0 1px var(--gpt-c); }
+.mc.sel-dual { border-color: var(--dual-c); background: var(--panel2); box-shadow: 0 0 0 1px var(--dual-c); }
+
+.mc-icon { font-size: 22px; margin-bottom: 6px; }
+.mc-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--cream);
+  margin-bottom: 3px;
+}
+.mc-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+/* API BOX */
+.api-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px; margin-bottom: 28px;
+}
+
+.api-box h3 {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 0.15em;
+  color: var(--amber); margin-bottom: 14px;
+  text-transform: uppercase;
+}
+
+.api-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+.api-f { }
+.api-f label {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; letter-spacing: 0.08em;
+  margin-bottom: 5px; text-transform: uppercase;
+}
+
+.adot { width: 8px; height: 8px; border-radius: 50%; }
+.adot.c { background: var(--claude-c); }
+.adot.g { background: var(--gpt-c); }
+
+.api-f label.lc { color: var(--claude-c); }
+.api-f label.lg { color: var(--gpt-c); }
+
+.api-f input {
+  width: 100%;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 12px;
+  color: var(--cream);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; outline: none;
+  transition: border-color 0.2s;
+}
+.api-f input:focus { border-color: var(--amber); }
+
+#gptRow { display: none; }
+
+.btn-save {
+  width: 100%; padding: 8px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 7px; color: var(--muted);
+  font-size: 11px; cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  transition: all 0.2s; letter-spacing: 0.08em;
+}
+.btn-save:hover { color: var(--cream); border-color: var(--sage); }
+
+.api-note {
+  margin-top: 8px; font-size: 10px;
+  color: var(--muted); font-family: 'DM Mono', monospace;
+}
+
+/* FORM */
+.form-box { margin-bottom: 28px; }
+
+.field { margin-bottom: 14px; }
+
+.field label {
+  display: block; font-size: 11px;
+  color: var(--sage-light); margin-bottom: 5px;
+  letter-spacing: 0.04em;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px;
+  color: var(--cream);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px; outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+
+.field input::placeholder,
+.field textarea::placeholder { color: var(--muted); opacity: 0.5; }
+.field input:focus,
+.field textarea:focus,
+.field select:focus { border-color: var(--amber); background: var(--panel2); }
+.field select option { background: var(--panel); }
+.field textarea { resize: vertical; min-height: 70px; }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* CHIPS */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.chip {
+  padding: 5px 13px; border-radius: 20px;
+  border: 1px solid rgba(122,158,122,0.25);
+  font-size: 11px; cursor: pointer;
+  color: var(--sage-light); background: transparent;
+  transition: all 0.18s;
+  font-family: 'Instrument Sans', sans-serif;
+  user-select: none;
+}
+.chip:hover { border-color: var(--amber); color: var(--amber-light); }
+.chip.on { background: var(--amber); border-color: var(--amber); color: var(--bg); font-weight: 600; }
+
+/* ERROR */
+.err {
+  background: rgba(180,50,50,0.12);
+  border: 1px solid rgba(180,50,50,0.35);
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 13px; color: #e8a0a0;
+  display: none; margin-bottom: 20px;
+}
+.err.show { display: block; }
+
+/* GENERATE BUTTON */
+.btn-gen {
+  width: 100%; padding: 16px;
+  border: none; border-radius: 12px;
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 700;
+  cursor: pointer; transition: all 0.25s;
+  margin-bottom: 36px; color: var(--bg);
+  background: var(--amber);
+}
+.btn-gen.gm { background: var(--gpt-c); }
+.btn-gen.dm { background: linear-gradient(90deg, var(--claude-c), var(--dual-c)); color: white; }
+.btn-gen:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.btn-gen:active { transform: translateY(0); }
+.btn-gen:disabled { opacity: 0.4; cursor: not-allowed; transform: none; filter: none; }
+
+/* LOADING */
+.loading { display: none; text-align: center; padding: 50px 0; }
+.loading.show { display: block; }
+
+.spin {
+  width: 40px; height: 40px;
+  border: 2px solid var(--border);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto 14px;
+}
+.spin.dual { border-top-color: var(--dual-c); border-right-color: var(--gpt-c); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.load-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; color: var(--muted);
+  letter-spacing: 0.12em;
+}
+.load-step { margin-top: 8px; font-size: 12px; color: var(--sage); min-height: 20px; }
+
+.pipeline {
+  display: none; align-items: center;
+  justify-content: center; gap: 8px;
+  margin-top: 14px;
+}
+.pipeline.show { display: flex; }
+
+.pip {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; padding: 3px 10px;
+  border-radius: 20px; border: 1px solid var(--border);
+  color: var(--muted); transition: all 0.3s;
+}
+.pip.act { border-color: var(--amber); color: var(--amber); background: rgba(200,137,42,0.1); }
+.pip.done { border-color: var(--sage); color: var(--sage); background: rgba(122,158,122,0.1); }
+.pip-arr { color: var(--muted); font-size: 10px; }
+
+/* RESULTS */
+.results { display: none; }
+.results.show { display: block; }
+
+.res-header {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 14px;
+}
+
+.res-meta { display: flex; align-items: center; gap: 10px; }
+
+.res-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; color: var(--cream);
+}
+
+.mode-pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; letter-spacing: 0.1em;
+  padding: 2px 10px; border-radius: 20px;
+  text-transform: uppercase;
+}
+.mp-c { background: rgba(200,137,42,0.15); color: var(--claude-c); border: 1px solid rgba(200,137,42,0.35); }
+.mp-g { background: rgba(74,174,138,0.15); color: var(--gpt-c); border: 1px solid rgba(74,174,138,0.35); }
+.mp-d { background: rgba(138,122,223,0.15); color: var(--dual-c); border: 1px solid rgba(138,122,223,0.35); }
+
+.btn-reset {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  background: none; border: 1px solid var(--border);
+  padding: 5px 13px; border-radius: 20px;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.08em;
+}
+.btn-reset:hover { color: var(--cream); border-color: var(--sage); }
+
+/* DUAL TABS */
+.dtabs { display: none; gap: 8px; margin-bottom: 14px; }
+.dtabs.show { display: flex; }
+
+.dtab {
+  padding: 6px 14px; border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 11px; cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted); background: transparent;
+  transition: all 0.2s; letter-spacing: 0.08em;
+}
+.dtab.ac { border-color: var(--claude-c); color: var(--claude-c); background: rgba(200,137,42,0.08); }
+.dtab.ag { border-color: var(--gpt-c); color: var(--gpt-c); background: rgba(74,174,138,0.08); }
+.dtab.am { border-color: var(--dual-c); color: var(--dual-c); background: rgba(138,122,223,0.08); }
+
+/* CONCEPT CARD */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 24px;
+  margin-bottom: 14px;
+  animation: up 0.35s ease both;
+}
+.card:nth-child(2) { animation-delay: 0.08s; }
+.card:nth-child(3) { animation-delay: 0.16s; }
+
+@keyframes up { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+.card.cc { border-top: 2px solid var(--claude-c); }
+.card.gc { border-top: 2px solid var(--gpt-c); }
+.card.mc { border-top: 2px solid var(--dual-c); }
+
+.cn {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; letter-spacing: 0.2em;
+  margin-bottom: 5px;
+}
+.cn.cc { color: var(--claude-c); }
+.cn.gc { color: var(--gpt-c); }
+.cn.mc { color: var(--dual-c); }
+
+.cname {
+  font-family: 'Playfair Display', serif;
+  font-size: 21px; color: var(--cream); margin-bottom: 3px;
+}
+
+.ctag {
+  font-size: 12px; color: var(--sage-light);
+  font-style: italic; margin-bottom: 16px;
+}
+
+.csec { margin-top: 13px; }
+
+.csec-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; letter-spacing: 0.15em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.csec-title.cc { color: var(--claude-c); }
+.csec-title.gc { color: var(--gpt-c); }
+.csec-title.mc { color: var(--dual-c); }
+
+.csec p { font-size: 13px; line-height: 1.65; color: #d8e0d0; }
+
+.ctags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.ctag-item {
+  padding: 2px 9px; background: var(--panel2);
+  border: 1px solid var(--border); border-radius: 10px;
+  font-size: 10px; color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
+
+@media (max-width: 500px) {
+  .mode-grid { grid-template-columns: 1fr; }
+  .api-row { grid-template-columns: 1fr; }
+  .row2 { grid-template-columns: 1fr; }
+}
+</style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-  <div id="app">
-    <div class="min-h-screen flex items-center justify-center">
-      <div class="text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-        <p class="text-slate-400">Loading real trend data...</p>
-      </div>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand-row">
+    <div class="brand-dot">A</div>
+    <span class="brand-name">Akar Creative OS</span>
+    <span class="ver-tag">v3 · Claude + GPT</span>
+  </div>
+  <h1>Event Concept <em>Generator</em></h1>
+  <p class="tagline">Brief singkat → 3 konsep event · Claude · GPT · atau keduanya</p>
+</header>
+
+<!-- MODE -->
+<div class="modes">
+  <div class="slabel">Mode Generasi</div>
+  <div class="mode-grid">
+    <div class="mc sel-claude" id="mc-claude" onclick="setMode('claude')">
+      <div class="mc-icon">🟠</div>
+      <div class="mc-name">Claude</div>
+      <div class="mc-desc">Struktural, strategic depth</div>
+    </div>
+    <div class="mc" id="mc-gpt" onclick="setMode('gpt')">
+      <div class="mc-icon">🟢</div>
+      <div class="mc-name">GPT</div>
+      <div class="mc-desc">Punchy, high-energy copy</div>
+    </div>
+    <div class="mc" id="mc-dual" onclick="setMode('dual')">
+      <div class="mc-icon">⚡</div>
+      <div class="mc-name">Dual AI</div>
+      <div class="mc-desc">Claude + GPT, lihat keduanya</div>
+    </div>
+  </div>
+</div>
+
+<!-- API -->
+<div class="api-box">
+  <h3>API Configuration</h3>
+  <div class="api-row">
+    <div class="api-f">
+      <label class="lc"><span class="adot c"></span> Anthropic (Claude)</label>
+      <input type="password" id="claudeKey" placeholder="sk-ant-api03-..." />
+    </div>
+    <div class="api-f" id="gptRow">
+      <label class="lg"><span class="adot g"></span> OpenAI (GPT)</label>
+      <input type="password" id="gptKey" placeholder="sk-proj-..." />
+    </div>
+  </div>
+  <button class="btn-save" onclick="saveKeys()">Simpan Keys</button>
+  <div class="api-note">Keys disimpan di browser saja — tidak dikirim ke mana pun selain API masing-masing.</div>
+</div>
+
+<!-- FORM -->
+<div class="form-box">
+  <div class="slabel">Brief Event</div>
+
+  <div class="field">
+    <label>Nama / Tema Event</label>
+    <input type="text" id="eventName" placeholder="Cth: Festival Kopi Surabaya, Vespa Rally Jatim..." />
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label>Perkiraan Budget</label>
+      <select id="budget">
+        <option value="">Pilih range...</option>
+        <option>Di bawah 10 juta</option>
+        <option>10–30 juta</option>
+        <option>30–100 juta</option>
+        <option>100–500 juta</option>
+        <option>Di atas 500 juta</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Skala Event</label>
+      <select id="scale">
+        <option value="">Pilih skala...</option>
+        <option>Intimate (50–150 orang)</option>
+        <option>Medium (150–500 orang)</option>
+        <option>Besar (500–2000 orang)</option>
+        <option>Massal (2000+)</option>
+      </select>
     </div>
   </div>
 
-  <script>
-    // ============================================
-    // TREND RADAR ID - Live Dashboard
-    // Loads REAL data from data/trends.json (GitHub Actions generated)
-    // ============================================
+  <div class="field">
+    <label>Target Audiens</label>
+    <input type="text" id="audience" placeholder="Cth: komunitas Vespa Surabaya, brand manager F&B..." />
+  </div>
 
-    let state = {
-      trends: [],
-      selectedCategory: 'all',
-      sortBy: 'momentum',
-      lastUpdate: new Date(),
-      autoRefresh: true
-    };
+  <div class="field">
+    <label>Tujuan Utama Event</label>
+    <div class="chips" id="objChips">
+      <div class="chip" onclick="this.classList.toggle('on')">Brand Awareness</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Community Building</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Lead Generation</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Revenue / Ticketing</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Product Launch</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Loyalitas / Retention</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Edukasi / Workshop</div>
+    </div>
+  </div>
 
-    const categoryLabels = {
-      all: 'Semua',
-      tech: 'Tech',
-      fashion: 'Fashion',
-      commerce: 'Bisnis',
-      entertainment: 'Entertainment',
-      beauty: 'Beauty',
-      fnb: 'F&B',
-      news: 'Berita'
-    };
+  <div class="field">
+    <label>Vibe / Karakter Event</label>
+    <div class="chips" id="vibeChips">
+      <div class="chip" onclick="this.classList.toggle('on')">Eksklusif & Premium</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Grassroots & Raw</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Fun & Playful</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Edukatif & Serius</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Experiential</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Cultural / Lokal</div>
+      <div class="chip" onclick="this.classList.toggle('on')">Digital-first</div>
+    </div>
+  </div>
 
-    const predictionColors = {
-      'viral_yes': 'from-red-500 to-pink-500',
-      'viral_likely': 'from-orange-500 to-amber-500',
-      'viral_maybe': 'from-blue-500 to-cyan-500'
-    };
+  <div class="field">
+    <label>Konteks Tambahan (opsional)</label>
+    <textarea id="context" placeholder="Sponsor, venue fix, constraint waktu, hal yang harus dihindari..."></textarea>
+  </div>
+</div>
 
-    const predictionLabels = {
-      'viral_yes': '🔥 Akan Viral',
-      'viral_likely': '⚡ Mungkin Viral',
-      'viral_maybe': '💭 Masih Monitor'
-    };
+<div class="err" id="errBox"></div>
 
-    // ============================================
-    // FALLBACK DATA (dashboard ga pernah kosong)
-    // ============================================
-    const fallbackTrends = [
-      { id: 1, term: 'Live Shopping TikTok', category: 'commerce', source: 'tiktok', momentum: 9.1, novelty: 8.2, searchVolume: 245000, change: '+52%', prediction: 'viral_yes', alert: true, content: 'Live shopping format booming di Indonesia' },
-      { id: 2, term: 'Skincare Routine Korea', category: 'beauty', source: 'instagram', momentum: 8.7, novelty: 7.5, searchVolume: 189000, change: '+44%', prediction: 'viral_yes', alert: true, content: 'K-beauty skincare routine viral di kalangan Gen Z' },
-      { id: 3, term: 'Cloud Kitchen Delivery', category: 'fnb', source: 'google_trends', momentum: 8.8, novelty: 7.2, searchVolume: 198000, change: '+51%', prediction: 'viral_yes', alert: true, content: 'Ghost kitchen + delivery model meledak di Indonesia' },
-      { id: 4, term: 'Short-form Content Creator', category: 'entertainment', source: 'tiktok', momentum: 8.9, novelty: 8.2, searchVolume: 203000, change: '+49%', prediction: 'viral_yes', alert: true, content: 'Shorts/Reels format dominasi content strategy' },
-      { id: 5, term: 'Flash Sale Shopee', category: 'commerce', source: 'google_trends', momentum: 8.4, novelty: 6.1, searchVolume: 167000, change: '+38%', prediction: 'viral_yes', alert: true, content: 'Flash sale trends meningkat drastis' },
-      { id: 6, term: 'Clean Beauty Movement', category: 'beauty', source: 'instagram', momentum: 8.2, novelty: 7.5, searchVolume: 134000, change: '+39%', prediction: 'viral_yes', alert: true, content: 'Natural beauty products trending Indonesia' },
-      { id: 7, term: 'Healthy Fast Food', category: 'fnb', source: 'tiktok', momentum: 8.5, novelty: 7.6, searchVolume: 145000, change: '+42%', prediction: 'viral_yes', alert: true, content: 'Healthy meal prep viral — F&B market transformation' },
-      { id: 8, term: 'Creator Kolaborasi Brand', category: 'entertainment', source: 'youtube', momentum: 8.6, novelty: 7.4, searchVolume: 167000, change: '+46%', prediction: 'viral_yes', alert: true, content: 'Creator x brand collaborations viral Indonesia' },
-      { id: 9, term: 'Produk Kimia Rumahan', category: 'commerce', source: 'google_trends', momentum: 7.9, novelty: 5.4, searchVolume: 156000, change: '+35%', prediction: 'viral_likely', alert: true, content: 'DIY chemistry products trending' },
-      { id: 10, term: 'Warung Makan Digital', category: 'fnb', source: 'instagram', momentum: 7.8, novelty: 6.8, searchVolume: 121000, change: '+35%', prediction: 'viral_likely', alert: true, content: 'Traditional food x digital platform hybrid trending' },
-      { id: 11, term: 'Skincare Viral TikTok', category: 'beauty', source: 'tiktok', momentum: 8.2, novelty: 8.1, searchVolume: 134000, change: '+39%', prediction: 'viral_yes', alert: true, content: 'Viral skincare challenges — content creation opportunity' },
-      { id: 12, term: 'OOTD Brand Lokal', category: 'fashion', source: 'instagram', momentum: 7.5, novelty: 6.8, searchVolume: 112000, change: '+31%', prediction: 'viral_likely', alert: false, content: 'Local brand OOTD content trending di Instagram' },
-      { id: 13, term: 'Meme Lokal Indonesia', category: 'entertainment', source: 'twitter', momentum: 8.3, novelty: 8.7, searchVolume: 145000, change: '+38%', prediction: 'viral_yes', alert: true, content: 'Local meme culture booming — humor relatability tinggi' },
-      { id: 14, term: 'B2B Marketplace Lokal', category: 'commerce', source: 'google_trends', momentum: 7.2, novelty: 6.1, searchVolume: 98000, change: '+28%', prediction: 'viral_likely', alert: false, content: 'B2B platform gaining traction untuk distributor' },
-      { id: 15, term: 'Food Packaging Eco', category: 'fnb', source: 'google_trends', momentum: 7.4, novelty: 6.9, searchVolume: 89000, change: '+26%', prediction: 'viral_likely', alert: false, content: 'Sustainable packaging untuk F&B — consumer concern rising' },
-    ];
+<button class="btn-gen" id="genBtn" onclick="generate()">Generate dengan Claude →</button>
 
-    // ============================================
-    // LOAD REAL DATA (with fallback)
-    // ============================================
-    function loadData() {
-      fetch('data/trends.json')
-        .then(r => r.json())
-        .then(data => {
-          if (data.trends && data.trends.length > 0) {
-            state.trends = data.trends;
-            state.lastUpdate = new Date(data.timestamp);
-          } else {
-            state.trends = fallbackTrends;
-          }
-          render();
-        })
-        .catch(e => {
-          console.error('Using fallback data:', e);
-          state.trends = fallbackTrends;
-          render();
-        });
-    }
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="spin" id="spinner"></div>
+  <div class="load-text">MERAMU KONSEP...</div>
+  <div class="load-step" id="loadStep"></div>
+  <div class="pipeline" id="pipeline">
+    <span class="pip" id="p1">Claude</span>
+    <span class="pip-arr">→</span>
+    <span class="pip" id="p2">GPT</span>
+    <span class="pip-arr">→</span>
+    <span class="pip" id="p3">Merge</span>
+  </div>
+</div>
 
-    // ============================================
-    // FILTERING & SORTING
-    // ============================================
-    function getFilteredTrends() {
-      let result = [...state.trends];
-      
-      if (state.selectedCategory !== 'all') {
-        result = result.filter(t => t.category === state.selectedCategory);
-      }
-      
-      result.sort((a, b) => {
-        switch(state.sortBy) {
-          case 'momentum': return b.momentum - a.momentum;
-          case 'novelty': return b.novelty - a.novelty;
-          case 'volume': return b.searchVolume - a.searchVolume;
-          case 'prediction': {
-            const order = { 'viral_yes': 3, 'viral_likely': 2, 'viral_maybe': 1 };
-            return (order[b.prediction] || 0) - (order[a.prediction] || 0);
-          }
-          default: return 0;
-        }
-      });
-      
-      return result;
-    }
+<!-- RESULTS -->
+<div class="results" id="results">
+  <div class="res-header">
+    <div class="res-meta">
+      <div class="res-title">3 Konsep Event</div>
+      <span class="mode-pill mp-c" id="resPill">CLAUDE</span>
+    </div>
+    <button class="btn-reset" onclick="reset()">← Brief Baru</button>
+  </div>
+  <div class="dtabs" id="dtabs">
+    <button class="dtab" id="tab-claude" onclick="showTab('claude')">🟠 Claude</button>
+    <button class="dtab" id="tab-gpt" onclick="showTab('gpt')">🟢 GPT</button>
+    <button class="dtab" id="tab-merged" onclick="showTab('merged')">⚡ Merged</button>
+  </div>
+  <div id="claudeOut"></div>
+  <div id="gptOut" style="display:none"></div>
+  <div id="mergedOut" style="display:none"></div>
+  <div id="singleOut"></div>
+</div>
 
-    // ============================================
-    // RENDER
-    // ============================================
-    function render() {
-      const filtered = getFilteredTrends();
-      const categories = ['all', 'commerce', 'beauty', 'fnb', 'entertainment', 'tech', 'fashion'];
-      
-      const html = `
-        <div class="min-h-screen p-6">
-          <div class="max-w-7xl mx-auto mb-8">
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-6">
-              <div class="flex items-center gap-3">
-                <div class="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h1 class="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Trend Radar ID</h1>
-                  <p class="text-sm text-slate-400">Prediksi tren viral sebelum meledak</p>
-                </div>
-              </div>
-              <div class="text-right">
-                <p class="text-xs text-slate-500">Last update</p>
-                <p class="text-sm font-mono text-cyan-400">${state.lastUpdate.toLocaleTimeString('id-ID')}</p>
-              </div>
-            </div>
+</div>
 
-            <!-- Controls -->
-            <div class="flex flex-wrap gap-4 items-center">
-              <!-- Category Filter -->
-              <div class="flex gap-2 flex-wrap">
-                ${categories.map(cat => `
-                  <button
-                    onclick="updateState({selectedCategory: '${cat}'})"
-                    class="px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                      state.selectedCategory === cat
-                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/50'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                    }"
-                  >
-                    ${categoryLabels[cat]}
-                  </button>
-                `).join('')}
-              </div>
+<script>
+var mode = 'claude';
 
-              <!-- Sort Dropdown -->
-              <select
-                onchange="updateState({sortBy: this.value})"
-                class="px-4 py-2 bg-slate-700 rounded-lg text-sm border border-slate-600 hover:border-cyan-500 focus:outline-none focus:border-cyan-500 cursor-pointer"
-              >
-                <option value="momentum" ${state.sortBy === 'momentum' ? 'selected' : ''}>Sortir: Momentum</option>
-                <option value="novelty" ${state.sortBy === 'novelty' ? 'selected' : ''}>Sortir: Novelty</option>
-                <option value="volume" ${state.sortBy === 'volume' ? 'selected' : ''}>Sortir: Volume</option>
-                <option value="prediction" ${state.sortBy === 'prediction' ? 'selected' : ''}>Sortir: Prediksi</option>
-              </select>
+// Load keys on start
+(function() {
+  var ck = localStorage.getItem('akar_ck') || '';
+  var gk = localStorage.getItem('akar_gk') || '';
+  if (ck) document.getElementById('claudeKey').value = ck;
+  if (gk) document.getElementById('gptKey').value = gk;
+})();
 
-              <!-- Refresh button -->
-              <button
-                onclick="loadData()"
-                class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all"
-                title="Refresh data"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
+function setMode(m) {
+  mode = m;
+  var cards = ['claude','gpt','dual'];
+  for (var i=0; i<cards.length; i++) {
+    document.getElementById('mc-'+cards[i]).className = 'mc';
+  }
+  document.getElementById('mc-'+m).className = 'mc sel-'+m;
 
-          <!-- Main Grid -->
-          <div class="max-w-7xl mx-auto grid gap-4">
-            ${filtered.length === 0 ? `
-              <div class="text-center py-12">
-                <p class="text-slate-400">No trends found for selected category</p>
-              </div>
-            ` : filtered.map(trend => `
-              <div class="group relative bg-slate-800/50 backdrop-blur border border-slate-700 hover:border-cyan-500/50 rounded-xl p-5 transition-all hover:shadow-lg hover:shadow-cyan-500/20 hover:-translate-y-1">
-                <!-- Alert badge -->
-                ${trend.alert ? `
-                  <div class="absolute top-3 right-3">
-                    <div class="relative">
-                      <div class="absolute inset-0 bg-red-500 rounded-full animate-pulse opacity-50"></div>
-                      <div class="relative bg-red-500 p-2 rounded-full">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                ` : ''}
+  var btn = document.getElementById('genBtn');
+  btn.className = 'btn-gen' + (m==='gpt' ? ' gm' : m==='dual' ? ' dm' : '');
+  btn.textContent = m==='claude' ? 'Generate dengan Claude →' : m==='gpt' ? 'Generate dengan GPT →' : 'Generate Dual AI ⚡';
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <!-- Left: Trend Info -->
-                  <div class="md:col-span-1">
-                    <div class="flex items-start gap-2 mb-3">
-                      <svg class="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L5.257 19.236A4 4 0 005 15.25V5a2 2 0 012-2h10a2 2 0 012 2z"></path>
-                      </svg>
-                      <div>
-                        <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">${trend.term}</h3>
-                        <p class="text-xs text-slate-400 mt-1">${trend.source.replace(/_/g, ' ').toUpperCase()}</p>
-                      </div>
-                    </div>
-                    <p class="text-sm text-slate-400 leading-relaxed">${trend.content}</p>
-                  </div>
+  document.getElementById('gptRow').style.display = (m==='gpt'||m==='dual') ? 'block' : 'none';
+}
 
-                  <!-- Center: Metrics -->
-                  <div class="md:col-span-1">
-                    <div class="space-y-3">
-                      <!-- Momentum -->
-                      <div>
-                        <div class="flex justify-between items-center mb-1">
-                          <span class="text-xs font-semibold text-slate-400">MOMENTUM</span>
-                          <span class="text-sm font-bold text-cyan-400">${trend.momentum.toFixed(1)}</span>
-                        </div>
-                        <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
-                          <div
-                            class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all"
-                            style="width: ${(trend.momentum / 10) * 100}%"
-                          ></div>
-                        </div>
-                      </div>
+function saveKeys() {
+  var ck = document.getElementById('claudeKey').value.trim();
+  var gk = document.getElementById('gptKey').value.trim();
+  if (ck) localStorage.setItem('akar_ck', ck);
+  if (gk) localStorage.setItem('akar_gk', gk);
+  var btn = document.querySelector('.btn-save');
+  btn.textContent = '✓ Tersimpan';
+  setTimeout(function() { btn.textContent = 'Simpan Keys'; }, 2000);
+}
 
-                      <!-- Novelty -->
-                      <div>
-                        <div class="flex justify-between items-center mb-1">
-                          <span class="text-xs font-semibold text-slate-400">NOVELTY</span>
-                          <span class="text-sm font-bold text-purple-400">${trend.novelty.toFixed(1)}</span>
-                        </div>
-                        <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
-                          <div
-                            class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
-                            style="width: ${(trend.novelty / 10) * 100}%"
-                          ></div>
-                        </div>
-                      </div>
+function chips(id) {
+  var els = document.querySelectorAll('#'+id+' .chip.on');
+  var out = [];
+  for (var i=0; i<els.length; i++) out.push(els[i].textContent);
+  return out.join(', ');
+}
 
-                      <!-- Change -->
-                      <div class="pt-2 border-t border-slate-700">
-                        <p class="text-xs text-slate-400">Volume Change</p>
-                        <p class="text-lg font-bold text-green-400">${trend.change}</p>
-                      </div>
-                    </div>
-                  </div>
+function showErr(msg) {
+  var el = document.getElementById('errBox');
+  el.textContent = msg;
+  el.className = 'err show';
+}
 
-                  <!-- Right: Prediction -->
-                  <div class="md:col-span-1 flex flex-col justify-between">
-                    <div class="bg-gradient-to-br ${predictionColors[trend.prediction]} p-4 rounded-lg shadow-lg">
-                      <p class="text-xs font-semibold text-white/80 mb-1">PREDIKSI</p>
-                      <p class="text-lg font-bold text-white">${predictionLabels[trend.prediction]}</p>
-                    </div>
-                    
-                    <div class="mt-3 text-xs text-slate-400">
-                      <p>Search Vol: <span class="font-mono text-cyan-400">${(trend.searchVolume / 1000).toFixed(0)}K</span></p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
+function hideErr() {
+  document.getElementById('errBox').className = 'err';
+}
 
-          <!-- Footer -->
-          <div class="max-w-7xl mx-auto mt-12 p-4 bg-slate-800/50 rounded-lg border border-slate-700 text-xs text-slate-400">
-            <p>
-              📊 <strong>Sources:</strong> Google Trends (ID) | TikTok | Twitter/X | Reddit | News APIs
-              <br/>
-              🔄 <strong>Status:</strong> LIVE - Real data via GitHub Actions (updated hourly)
-              <br/>
-              🎯 <strong>Scoring:</strong> Momentum (growth rate) + Novelty (newness) + Volume
-            </p>
-          </div>
-        </div>
-      `;
+function buildPrompt(brief, aiType) {
+  var persona = aiType === 'claude'
+    ? 'Kamu adalah creative director Indonesia yang berpengalaman. Fokus pada strategic depth, nuance, dan angle yang non-obvious. Pikirkan dari sudut pandang komunitas dan human connection.'
+    : 'Kamu adalah creative director Indonesia yang bold dan punchy. Fokus pada high-energy concepts, memorable hooks, dan copy yang langsung excite orang. Be direct, vivid, dan surprising.';
 
-      document.getElementById('app').innerHTML = html;
-    }
+  return persona + '\n\nBRIEF EVENT:\n'
+    + '- Nama/Tema: ' + brief.name + '\n'
+    + '- Budget: ' + brief.budget + '\n'
+    + '- Skala: ' + brief.scale + '\n'
+    + '- Audiens: ' + brief.audience + '\n'
+    + '- Tujuan: ' + (brief.obj || 'tidak ditentukan') + '\n'
+    + '- Vibe: ' + (brief.vibe || 'tidak ditentukan') + '\n'
+    + '- Konteks: ' + (brief.ctx || 'tidak ada') + '\n\n'
+    + 'Buat 3 konsep event yang BERBEDA secara angle. Masing-masing harus punya identitas kuat.\n\n'
+    + 'Balas HANYA JSON, tidak ada teks lain:\n'
+    + '{"concepts":[{"number":"01","name":"Nama Konsep","tagline":"Satu kalimat positioning","angle":"Apa yang unik (2-3 kalimat)","experience":"Pengalaman peserta (2-3 kalimat)","activation":"3-4 elemen aktivasi kunci","budgetNote":"Catatan alokasi budget","keywords":["tag1","tag2","tag3"]}]}';
+}
 
-    // Update state & re-render
-    function updateState(updates) {
-      state = { ...state, ...updates };
-      render();
-    }
+function callClaude(prompt, key) {
+  return fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }).then(function(r) {
+    return r.json().then(function(d) {
+      if (!r.ok) throw new Error(d.error ? d.error.message : 'Claude error ' + r.status);
+      var raw = d.content[0].text.replace(/```json|```/g, '').trim();
+      return JSON.parse(raw);
+    });
+  });
+}
 
-    // ============================================
-    // INIT
-    // ============================================
-    loadData();
+function callGPT(prompt, key) {
+  return fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + key
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      max_tokens: 2000,
+      messages: [
+        { role: 'system', content: 'You are a bold Indonesian creative director. Respond ONLY with valid JSON, no markdown, no preamble.' },
+        { role: 'user', content: prompt }
+      ]
+    })
+  }).then(function(r) {
+    return r.json().then(function(d) {
+      if (!r.ok) throw new Error(d.error ? d.error.message : 'GPT error ' + r.status);
+      var raw = d.choices[0].message.content.replace(/```json|```/g, '').trim();
+      return JSON.parse(raw);
+    });
+  });
+}
 
-    // Refresh every hour
-    setInterval(loadData, 3600000);
-  </script>
+function mergeConcepts(cd, gd) {
+  return {
+    concepts: cd.concepts.map(function(cc, i) {
+      var gc = gd.concepts[i] || cc;
+      return {
+        number: cc.number,
+        name: cc.name,
+        tagline: gc.tagline,
+        angle: cc.angle,
+        experience: cc.experience,
+        activation: gc.activation,
+        budgetNote: cc.budgetNote,
+        keywords: (cc.keywords || []).concat(gc.keywords || []).filter(function(v,i,a){ return a.indexOf(v)===i; }).slice(0,5)
+      };
+    })
+  };
+}
+
+var stepInt;
+function startLoad(m) {
+  document.getElementById('loading').className = 'loading show';
+  document.getElementById('results').className = 'results';
+  hideErr();
+
+  var spin = document.getElementById('spinner');
+  spin.className = 'spin' + (m==='dual' ? ' dual' : '');
+
+  var pip = document.getElementById('pipeline');
+  pip.className = 'pipeline' + (m==='dual' ? ' show' : '');
+
+  var steps = m==='claude'
+    ? ['Menganalisis brief...','Mencari angle unik...','Menyusun 3 konsep...','Menyempurnakan...']
+    : m==='gpt'
+    ? ['Reading brief...','Brainstorming bold angles...','Crafting punchy concepts...']
+    : ['Claude menganalisis...','Claude menyusun struktur...','Mengirim ke GPT...'];
+
+  var idx = 0;
+  var el = document.getElementById('loadStep');
+  el.textContent = steps[0];
+  clearInterval(stepInt);
+  stepInt = setInterval(function() {
+    idx = (idx+1) % steps.length;
+    el.textContent = steps[idx];
+  }, 1800);
+}
+
+function setPip(step) {
+  for (var i=1; i<=3; i++) {
+    var el = document.getElementById('p'+i);
+    el.className = 'pip' + (i<step ? ' done' : i===step ? ' act' : '');
+  }
+}
+
+function stopLoad() {
+  clearInterval(stepInt);
+  document.getElementById('loading').className = 'loading';
+}
+
+function buildCard(c, src) {
+  var kw = (c.keywords||[]).map(function(k){ return '<span class="ctag-item">'+k+'</span>'; }).join('');
+  return '<div class="card '+src+'c">'
+    + '<div class="cn '+src+'c">KONSEP '+c.number+'</div>'
+    + '<div class="cname">'+c.name+'</div>'
+    + '<div class="ctag">"'+c.tagline+'"</div>'
+    + '<div class="csec"><div class="csec-title '+src+'c">Angle</div><p>'+c.angle+'</p></div>'
+    + '<div class="csec"><div class="csec-title '+src+'c">Pengalaman Peserta</div><p>'+c.experience+'</p></div>'
+    + '<div class="csec"><div class="csec-title '+src+'c">Elemen Aktivasi</div><p>'+c.activation+'</p></div>'
+    + '<div class="csec"><div class="csec-title '+src+'c">Budget Note</div><p>'+c.budgetNote+'</p></div>'
+    + '<div class="ctags">'+kw+'</div>'
+    + '</div>';
+}
+
+function showResults(single, src) {
+  document.getElementById('dtabs').className = 'dtabs';
+  document.getElementById('singleOut').innerHTML = single.concepts.map(function(c){ return buildCard(c, src); }).join('');
+  document.getElementById('claudeOut').innerHTML = '';
+  document.getElementById('gptOut').innerHTML = '';
+  document.getElementById('mergedOut').innerHTML = '';
+  document.getElementById('claudeOut').style.display = 'block';
+  document.getElementById('gptOut').style.display = 'block';
+  document.getElementById('mergedOut').style.display = 'block';
+
+  var pill = document.getElementById('resPill');
+  pill.className = 'mode-pill mp-'+src[0];
+  pill.textContent = src==='c' ? 'CLAUDE' : src==='g' ? 'GPT' : 'MERGED';
+
+  document.getElementById('results').className = 'results show';
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showDual(cd, gd, md) {
+  document.getElementById('singleOut').innerHTML = '';
+  document.getElementById('claudeOut').innerHTML = cd.concepts.map(function(c){ return buildCard(c,'c'); }).join('');
+  document.getElementById('gptOut').innerHTML = gd.concepts.map(function(c){ return buildCard(c,'g'); }).join('');
+  document.getElementById('mergedOut').innerHTML = md.concepts.map(function(c){ return buildCard(c,'m'); }).join('');
+
+  document.getElementById('dtabs').className = 'dtabs show';
+
+  var pill = document.getElementById('resPill');
+  pill.className = 'mode-pill mp-d';
+  pill.textContent = 'DUAL AI';
+
+  showTab('claude');
+  document.getElementById('results').className = 'results show';
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showTab(t) {
+  var map = { claude: 'claudeOut', gpt: 'gptOut', merged: 'mergedOut' };
+  var cls = { claude: 'ac', gpt: 'ag', merged: 'am' };
+  Object.keys(map).forEach(function(k) {
+    document.getElementById(map[k]).style.display = k===t ? 'block' : 'none';
+    var btn = document.getElementById('tab-'+k);
+    btn.className = 'dtab' + (k===t ? ' '+cls[k] : '');
+  });
+}
+
+function reset() {
+  document.getElementById('results').className = 'results';
+  hideErr();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function generate() {
+  var brief = {
+    name: document.getElementById('eventName').value.trim(),
+    budget: document.getElementById('budget').value,
+    scale: document.getElementById('scale').value,
+    audience: document.getElementById('audience').value.trim(),
+    obj: chips('objChips'),
+    vibe: chips('vibeChips'),
+    ctx: document.getElementById('context').value.trim()
+  };
+
+  hideErr();
+
+  if (!brief.name || !brief.budget || !brief.scale || !brief.audience) {
+    showErr('Isi minimal: nama event, budget, skala, dan target audiens.');
+    return;
+  }
+
+  var ck = document.getElementById('claudeKey').value.trim();
+  var gk = document.getElementById('gptKey').value.trim();
+
+  if ((mode==='claude'||mode==='dual') && !ck) {
+    showErr('Masukkan Anthropic API key.');
+    return;
+  }
+  if ((mode==='gpt'||mode==='dual') && !gk) {
+    showErr('Masukkan OpenAI API key untuk mode GPT / Dual.');
+    return;
+  }
+
+  document.getElementById('genBtn').disabled = true;
+  startLoad(mode);
+
+  if (mode==='claude') {
+    callClaude(buildPrompt(brief,'claude'), ck)
+      .then(function(d) { showResults(d,'c'); })
+      .catch(function(e) { showErr('Error: '+e.message); })
+      .finally(function() { document.getElementById('genBtn').disabled=false; stopLoad(); });
+
+  } else if (mode==='gpt') {
+    callGPT(buildPrompt(brief,'gpt'), gk)
+      .then(function(d) { showResults(d,'g'); })
+      .catch(function(e) { showErr('Error: '+e.message); })
+      .finally(function() { document.getElementById('genBtn').disabled=false; stopLoad(); });
+
+  } else {
+    setPip(1);
+    var claudeData, gptData;
+    callClaude(buildPrompt(brief,'claude'), ck)
+      .then(function(d) {
+        claudeData = d;
+        setPip(2);
+        return callGPT(buildPrompt(brief,'gpt'), gk);
+      })
+      .then(function(d) {
+        gptData = d;
+        setPip(3);
+        var merged = mergeConcepts(claudeData, gptData);
+        showDual(claudeData, gptData, merged);
+      })
+      .catch(function(e) { showErr('Error: '+e.message); })
+      .finally(function() { document.getElementById('genBtn').disabled=false; stopLoad(); });
+  }
+}
+</script>
 </body>
 </html>
