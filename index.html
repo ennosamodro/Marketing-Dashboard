@@ -11,6 +11,11 @@
       50% { box-shadow: 0 0 0 10px rgba(34, 211, 238, 0); }
     }
     .pulse-glow { animation: pulse-glow 2s infinite; }
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .slide-in { animation: slide-in 0.2s ease-out; }
   </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
@@ -34,7 +39,12 @@
       selectedCategory: 'all',
       sortBy: 'momentum',
       lastUpdate: new Date(),
-      autoRefresh: true
+      autoRefresh: true,
+      activeTab: 'dashboard',
+      habits: [],
+      showAddForm: false,
+      habitFilter: 'all',
+      deleteConfirmId: null
     };
 
     const categoryLabels = {
@@ -58,6 +68,14 @@
       'viral_yes': '🔥 Akan Viral',
       'viral_likely': '⚡ Mungkin Viral',
       'viral_maybe': '💭 Masih Monitor'
+    };
+
+    const habitCategoryMeta = {
+      health:       { label: 'Kesehatan',     color: 'from-green-500 to-emerald-600',  icon: '🏥' },
+      productivity: { label: 'Produktivitas', color: 'from-cyan-500 to-blue-600',      icon: '💼' },
+      mindfulness:  { label: 'Mindfulness',   color: 'from-purple-500 to-indigo-600',  icon: '🧘' },
+      fitness:      { label: 'Kebugaran',     color: 'from-orange-500 to-red-600',     icon: '💪' },
+      learning:     { label: 'Belajar',       color: 'from-yellow-500 to-amber-600',   icon: '📚' }
     };
 
     // ============================================
@@ -108,11 +126,11 @@
     // ============================================
     function getFilteredTrends() {
       let result = [...state.trends];
-      
+
       if (state.selectedCategory !== 'all') {
         result = result.filter(t => t.category === state.selectedCategory);
       }
-      
+
       result.sort((a, b) => {
         switch(state.sortBy) {
           case 'momentum': return b.momentum - a.momentum;
@@ -125,190 +143,570 @@
           default: return 0;
         }
       });
-      
+
       return result;
     }
 
     // ============================================
-    // RENDER
+    // HABIT TRACKER - STORAGE
     // ============================================
-    function render() {
-      const filtered = getFilteredTrends();
-      const categories = ['all', 'commerce', 'beauty', 'fnb', 'entertainment', 'tech', 'fashion'];
-      
-      const html = `
-        <div class="min-h-screen p-6">
-          <div class="max-w-7xl mx-auto mb-8">
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-6">
-              <div class="flex items-center gap-3">
-                <div class="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                  </svg>
-                </div>
-                <div>
-                  <h1 class="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Trend Radar ID</h1>
-                  <p class="text-sm text-slate-400">Prediksi tren viral sebelum meledak</p>
-                </div>
+    function loadHabits() {
+      try {
+        const raw = localStorage.getItem('trendradar-habits');
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveHabits(habits) {
+      try {
+        localStorage.setItem('trendradar-habits', JSON.stringify(habits));
+      } catch (e) {
+        console.error('saveHabits error:', e);
+      }
+    }
+
+    // ============================================
+    // HABIT TRACKER - DATE HELPERS
+    // ============================================
+    function getTodayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function getLast7Days() {
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+      }
+      return days;
+    }
+
+    function formatDayLabel(dateStr) {
+      const days = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+      const d = new Date(dateStr + 'T00:00:00');
+      return days[d.getDay()];
+    }
+
+    // ============================================
+    // HABIT TRACKER - STATISTICS
+    // ============================================
+    function getStreak(habit) {
+      const d = new Date();
+      const today = getTodayStr();
+      if (!habit.completions[today]) {
+        d.setDate(d.getDate() - 1);
+      }
+      let streak = 0;
+      for (let i = 0; i < 365; i++) {
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        if (habit.completions[key]) {
+          streak++;
+          d.setDate(d.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    function getBestStreak(habit) {
+      const dates = Object.keys(habit.completions).filter(k => habit.completions[k]).sort();
+      if (dates.length === 0) return 0;
+      let best = 1, current = 1;
+      for (let i = 1; i < dates.length; i++) {
+        const prev = new Date(dates[i-1] + 'T00:00:00');
+        const curr = new Date(dates[i] + 'T00:00:00');
+        if ((curr - prev) / 86400000 === 1) {
+          current++;
+          if (current > best) best = current;
+        } else {
+          current = 1;
+        }
+      }
+      return best;
+    }
+
+    function getCompletionRate(habit) {
+      const d = new Date();
+      const created = new Date(habit.createdAt + 'T00:00:00');
+      let eligible = 0, done = 0;
+      for (let i = 0; i < 30; i++) {
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        if (new Date(key + 'T00:00:00') >= created) {
+          eligible++;
+          if (habit.completions[key]) done++;
+        }
+        d.setDate(d.getDate() - 1);
+      }
+      return eligible === 0 ? 0 : Math.round((done / eligible) * 100);
+    }
+
+    function getOverallStats() {
+      const today = getTodayStr();
+      const totalHabits = state.habits.length;
+      const doneToday = state.habits.filter(h => h.completions[today]).length;
+      const totalCompletions = state.habits.reduce((sum, h) =>
+        sum + Object.values(h.completions).filter(Boolean).length, 0);
+      const avgRate = totalHabits === 0 ? 0 :
+        Math.round(state.habits.reduce((sum, h) => sum + getCompletionRate(h), 0) / totalHabits);
+      return { totalHabits, doneToday, totalCompletions, avgRate };
+    }
+
+    // ============================================
+    // HABIT TRACKER - ACTIONS
+    // ============================================
+    function toggleCompletion(habitId) {
+      const today = getTodayStr();
+      state.habits = state.habits.map(h => {
+        if (h.id !== habitId) return h;
+        const completions = { ...h.completions };
+        completions[today] = !completions[today];
+        return { ...h, completions };
+      });
+      saveHabits(state.habits);
+      render();
+    }
+
+    function addHabit(name, emoji, category) {
+      if (!name.trim()) return;
+      state.habits = [...state.habits, {
+        id: Date.now(),
+        name: name.trim(),
+        emoji: emoji.trim() || '⭐',
+        category,
+        createdAt: getTodayStr(),
+        completions: {}
+      }];
+      saveHabits(state.habits);
+      state.showAddForm = false;
+      render();
+    }
+
+    function handleAddFormSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      addHabit(
+        form.querySelector('#habit-name').value,
+        form.querySelector('#habit-emoji').value,
+        form.querySelector('#habit-category').value
+      );
+    }
+
+    function requestDelete(habitId) {
+      state.deleteConfirmId = habitId;
+      render();
+    }
+
+    function confirmDelete(habitId) {
+      state.habits = state.habits.filter(h => h.id !== habitId);
+      saveHabits(state.habits);
+      state.deleteConfirmId = null;
+      render();
+    }
+
+    function cancelDelete() {
+      state.deleteConfirmId = null;
+      render();
+    }
+
+    // ============================================
+    // RENDER - SHARED HEADER
+    // ============================================
+    function renderHeader() {
+      return `
+        <div class="max-w-7xl mx-auto mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
               </div>
+              <div>
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Trend Radar ID</h1>
+                <p class="text-sm text-slate-400">${state.activeTab === 'habits' ? 'Lacak kebiasaan harianmu' : 'Prediksi tren viral sebelum meledak'}</p>
+              </div>
+            </div>
+            ${state.activeTab === 'dashboard' ? `
               <div class="text-right">
                 <p class="text-xs text-slate-500">Last update</p>
                 <p class="text-sm font-mono text-cyan-400">${state.lastUpdate.toLocaleTimeString('id-ID')}</p>
               </div>
-            </div>
-
-            <!-- Controls -->
-            <div class="flex flex-wrap gap-4 items-center">
-              <!-- Category Filter -->
-              <div class="flex gap-2 flex-wrap">
-                ${categories.map(cat => `
-                  <button
-                    onclick="updateState({selectedCategory: '${cat}'})"
-                    class="px-4 py-2 rounded-lg transition-all text-sm font-medium ${
-                      state.selectedCategory === cat
-                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/50'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                    }"
-                  >
-                    ${categoryLabels[cat]}
-                  </button>
-                `).join('')}
-              </div>
-
-              <!-- Sort Dropdown -->
-              <select
-                onchange="updateState({sortBy: this.value})"
-                class="px-4 py-2 bg-slate-700 rounded-lg text-sm border border-slate-600 hover:border-cyan-500 focus:outline-none focus:border-cyan-500 cursor-pointer"
-              >
-                <option value="momentum" ${state.sortBy === 'momentum' ? 'selected' : ''}>Sortir: Momentum</option>
-                <option value="novelty" ${state.sortBy === 'novelty' ? 'selected' : ''}>Sortir: Novelty</option>
-                <option value="volume" ${state.sortBy === 'volume' ? 'selected' : ''}>Sortir: Volume</option>
-                <option value="prediction" ${state.sortBy === 'prediction' ? 'selected' : ''}>Sortir: Prediksi</option>
-              </select>
-
-              <!-- Refresh button -->
-              <button
-                onclick="loadData()"
-                class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all"
-                title="Refresh data"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-              </button>
-            </div>
+            ` : ''}
           </div>
+          <div class="flex gap-2 border-b border-slate-700 pb-4">
+            <button
+              onclick="updateState({activeTab: 'dashboard'})"
+              class="px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+                state.activeTab === 'dashboard'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/50'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }"
+            >
+              📊 Dashboard
+            </button>
+            <button
+              onclick="updateState({activeTab: 'habits'})"
+              class="px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+                state.activeTab === 'habits'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/50'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }"
+            >
+              ✅ Habit Tracker
+            </button>
+          </div>
+        </div>
+      `;
+    }
 
-          <!-- Main Grid -->
-          <div class="max-w-7xl mx-auto grid gap-4">
-            ${filtered.length === 0 ? `
-              <div class="text-center py-12">
-                <p class="text-slate-400">No trends found for selected category</p>
-              </div>
-            ` : filtered.map(trend => `
-              <div class="group relative bg-slate-800/50 backdrop-blur border border-slate-700 hover:border-cyan-500/50 rounded-xl p-5 transition-all hover:shadow-lg hover:shadow-cyan-500/20 hover:-translate-y-1">
-                <!-- Alert badge -->
-                ${trend.alert ? `
-                  <div class="absolute top-3 right-3">
-                    <div class="relative">
-                      <div class="absolute inset-0 bg-red-500 rounded-full animate-pulse opacity-50"></div>
-                      <div class="relative bg-red-500 p-2 rounded-full">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                ` : ''}
+    // ============================================
+    // RENDER - DASHBOARD TAB
+    // ============================================
+    function renderDashboard() {
+      const filtered = getFilteredTrends();
+      const categories = ['all', 'commerce', 'beauty', 'fnb', 'entertainment', 'tech', 'fashion'];
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <!-- Left: Trend Info -->
-                  <div class="md:col-span-1">
-                    <div class="flex items-start gap-2 mb-3">
-                      <svg class="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L5.257 19.236A4 4 0 005 15.25V5a2 2 0 012-2h10a2 2 0 012 2z"></path>
+      return `
+        <div class="max-w-7xl mx-auto mb-8">
+          <div class="flex flex-wrap gap-4 items-center">
+            <div class="flex gap-2 flex-wrap">
+              ${categories.map(cat => `
+                <button
+                  onclick="updateState({selectedCategory: '${cat}'})"
+                  class="px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                    state.selectedCategory === cat
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/50'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }"
+                >
+                  ${categoryLabels[cat]}
+                </button>
+              `).join('')}
+            </div>
+
+            <select
+              onchange="updateState({sortBy: this.value})"
+              class="px-4 py-2 bg-slate-700 rounded-lg text-sm border border-slate-600 hover:border-cyan-500 focus:outline-none focus:border-cyan-500 cursor-pointer"
+            >
+              <option value="momentum" ${state.sortBy === 'momentum' ? 'selected' : ''}>Sortir: Momentum</option>
+              <option value="novelty" ${state.sortBy === 'novelty' ? 'selected' : ''}>Sortir: Novelty</option>
+              <option value="volume" ${state.sortBy === 'volume' ? 'selected' : ''}>Sortir: Volume</option>
+              <option value="prediction" ${state.sortBy === 'prediction' ? 'selected' : ''}>Sortir: Prediksi</option>
+            </select>
+
+            <button
+              onclick="loadData()"
+              class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 transition-all"
+              title="Refresh data"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto grid gap-4">
+          ${filtered.length === 0 ? `
+            <div class="text-center py-12">
+              <p class="text-slate-400">No trends found for selected category</p>
+            </div>
+          ` : filtered.map(trend => `
+            <div class="group relative bg-slate-800/50 backdrop-blur border border-slate-700 hover:border-cyan-500/50 rounded-xl p-5 transition-all hover:shadow-lg hover:shadow-cyan-500/20 hover:-translate-y-1">
+              ${trend.alert ? `
+                <div class="absolute top-3 right-3">
+                  <div class="relative">
+                    <div class="absolute inset-0 bg-red-500 rounded-full animate-pulse opacity-50"></div>
+                    <div class="relative bg-red-500 p-2 rounded-full">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                       </svg>
-                      <div>
-                        <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">${trend.term}</h3>
-                        <p class="text-xs text-slate-400 mt-1">${trend.source.replace(/_/g, ' ').toUpperCase()}</p>
-                      </div>
-                    </div>
-                    <p class="text-sm text-slate-400 leading-relaxed">${trend.content}</p>
-                  </div>
-
-                  <!-- Center: Metrics -->
-                  <div class="md:col-span-1">
-                    <div class="space-y-3">
-                      <!-- Momentum -->
-                      <div>
-                        <div class="flex justify-between items-center mb-1">
-                          <span class="text-xs font-semibold text-slate-400">MOMENTUM</span>
-                          <span class="text-sm font-bold text-cyan-400">${trend.momentum.toFixed(1)}</span>
-                        </div>
-                        <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
-                          <div
-                            class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all"
-                            style="width: ${(trend.momentum / 10) * 100}%"
-                          ></div>
-                        </div>
-                      </div>
-
-                      <!-- Novelty -->
-                      <div>
-                        <div class="flex justify-between items-center mb-1">
-                          <span class="text-xs font-semibold text-slate-400">NOVELTY</span>
-                          <span class="text-sm font-bold text-purple-400">${trend.novelty.toFixed(1)}</span>
-                        </div>
-                        <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
-                          <div
-                            class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
-                            style="width: ${(trend.novelty / 10) * 100}%"
-                          ></div>
-                        </div>
-                      </div>
-
-                      <!-- Change -->
-                      <div class="pt-2 border-t border-slate-700">
-                        <p class="text-xs text-slate-400">Volume Change</p>
-                        <p class="text-lg font-bold text-green-400">${trend.change}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Right: Prediction -->
-                  <div class="md:col-span-1 flex flex-col justify-between">
-                    <div class="bg-gradient-to-br ${predictionColors[trend.prediction]} p-4 rounded-lg shadow-lg">
-                      <p class="text-xs font-semibold text-white/80 mb-1">PREDIKSI</p>
-                      <p class="text-lg font-bold text-white">${predictionLabels[trend.prediction]}</p>
-                    </div>
-                    
-                    <div class="mt-3 text-xs text-slate-400">
-                      <p>Search Vol: <span class="font-mono text-cyan-400">${(trend.searchVolume / 1000).toFixed(0)}K</span></p>
                     </div>
                   </div>
                 </div>
+              ` : ''}
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-1">
+                  <div class="flex items-start gap-2 mb-3">
+                    <svg class="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L5.257 19.236A4 4 0 005 15.25V5a2 2 0 012-2h10a2 2 0 012 2z"></path>
+                    </svg>
+                    <div>
+                      <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">${trend.term}</h3>
+                      <p class="text-xs text-slate-400 mt-1">${trend.source.replace(/_/g, ' ').toUpperCase()}</p>
+                    </div>
+                  </div>
+                  <p class="text-sm text-slate-400 leading-relaxed">${trend.content}</p>
+                </div>
+
+                <div class="md:col-span-1">
+                  <div class="space-y-3">
+                    <div>
+                      <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-semibold text-slate-400">MOMENTUM</span>
+                        <span class="text-sm font-bold text-cyan-400">${trend.momentum.toFixed(1)}</span>
+                      </div>
+                      <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all" style="width: ${(trend.momentum / 10) * 100}%"></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-semibold text-slate-400">NOVELTY</span>
+                        <span class="text-sm font-bold text-purple-400">${trend.novelty.toFixed(1)}</span>
+                      </div>
+                      <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all" style="width: ${(trend.novelty / 10) * 100}%"></div>
+                      </div>
+                    </div>
+                    <div class="pt-2 border-t border-slate-700">
+                      <p class="text-xs text-slate-400">Volume Change</p>
+                      <p class="text-lg font-bold text-green-400">${trend.change}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="md:col-span-1 flex flex-col justify-between">
+                  <div class="bg-gradient-to-br ${predictionColors[trend.prediction]} p-4 rounded-lg shadow-lg">
+                    <p class="text-xs font-semibold text-white/80 mb-1">PREDIKSI</p>
+                    <p class="text-lg font-bold text-white">${predictionLabels[trend.prediction]}</p>
+                  </div>
+                  <div class="mt-3 text-xs text-slate-400">
+                    <p>Search Vol: <span class="font-mono text-cyan-400">${(trend.searchVolume / 1000).toFixed(0)}K</span></p>
+                  </div>
+                </div>
               </div>
-            `).join('')}
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="max-w-7xl mx-auto mt-12 p-4 bg-slate-800/50 rounded-lg border border-slate-700 text-xs text-slate-400">
+          <p>
+            📊 <strong>Sources:</strong> Google Trends (ID) | TikTok | Twitter/X | Reddit | News APIs
+            <br/>
+            🔄 <strong>Status:</strong> LIVE - Real data via GitHub Actions (updated hourly)
+            <br/>
+            🎯 <strong>Scoring:</strong> Momentum (growth rate) + Novelty (newness) + Volume
+          </p>
+        </div>
+      `;
+    }
+
+    // ============================================
+    // RENDER - HABIT TRACKER TAB
+    // ============================================
+    function renderHabits() {
+      const stats = getOverallStats();
+      const today = getTodayStr();
+      const last7 = getLast7Days();
+      const habitCategories = ['all', 'health', 'productivity', 'mindfulness', 'fitness', 'learning'];
+      const filtered = state.habitFilter === 'all'
+        ? state.habits
+        : state.habits.filter(h => h.category === state.habitFilter);
+
+      return `
+        <div class="max-w-4xl mx-auto">
+
+          <!-- Stats Row -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
+              <p class="text-3xl font-bold text-cyan-400">${stats.totalHabits}</p>
+              <p class="text-xs text-slate-400 mt-1">Total Kebiasaan</p>
+            </div>
+            <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
+              <p class="text-3xl font-bold ${stats.doneToday === stats.totalHabits && stats.totalHabits > 0 ? 'text-green-400' : 'text-amber-400'}">${stats.doneToday}/${stats.totalHabits}</p>
+              <p class="text-xs text-slate-400 mt-1">Selesai Hari Ini</p>
+            </div>
+            <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
+              <p class="text-3xl font-bold text-purple-400">${stats.totalCompletions}</p>
+              <p class="text-xs text-slate-400 mt-1">Total Pencapaian</p>
+            </div>
+            <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
+              <p class="text-3xl font-bold text-amber-400">${stats.avgRate}%</p>
+              <p class="text-xs text-slate-400 mt-1">Rata-rata Konsistensi</p>
+            </div>
           </div>
 
-          <!-- Footer -->
-          <div class="max-w-7xl mx-auto mt-12 p-4 bg-slate-800/50 rounded-lg border border-slate-700 text-xs text-slate-400">
+          <!-- Category Filter + Add Button -->
+          <div class="flex flex-wrap gap-2 items-center justify-between mb-4">
+            <div class="flex gap-2 flex-wrap">
+              ${habitCategories.map(cat => `
+                <button
+                  onclick="updateState({habitFilter: '${cat}'})"
+                  class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    state.habitFilter === cat
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/50'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }"
+                >
+                  ${cat === 'all' ? 'Semua' : habitCategoryMeta[cat].icon + ' ' + habitCategoryMeta[cat].label}
+                </button>
+              `).join('')}
+            </div>
+            <button
+              onclick="updateState({showAddForm: !state.showAddForm})"
+              class="px-4 py-2 rounded-lg text-sm font-medium transition-all
+                     bg-gradient-to-r from-cyan-500 to-blue-600
+                     text-white shadow-lg shadow-cyan-500/50
+                     hover:shadow-xl hover:shadow-cyan-500/40 hover:-translate-y-0.5"
+            >
+              ${state.showAddForm ? '✕ Batal' : '+ Tambah Kebiasaan'}
+            </button>
+          </div>
+
+          <!-- Add Form -->
+          ${state.showAddForm ? `
+            <div class="bg-slate-800/50 border border-cyan-500/30 rounded-xl p-5 mb-6 slide-in">
+              <h3 class="text-sm font-semibold text-cyan-400 mb-4">Tambah Kebiasaan Baru</h3>
+              <form onsubmit="handleAddFormSubmit(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <input
+                  id="habit-name"
+                  type="text"
+                  placeholder="Nama kebiasaan..."
+                  required
+                  maxlength="50"
+                  class="md:col-span-2 px-4 py-2 bg-slate-700 rounded-lg text-sm border border-slate-600
+                         hover:border-cyan-500 focus:outline-none focus:border-cyan-500 placeholder-slate-500"
+                />
+                <input
+                  id="habit-emoji"
+                  type="text"
+                  placeholder="Emoji (mis. 🏃)"
+                  maxlength="4"
+                  class="px-4 py-2 bg-slate-700 rounded-lg text-sm border border-slate-600
+                         hover:border-cyan-500 focus:outline-none focus:border-cyan-500 placeholder-slate-500"
+                />
+                <select
+                  id="habit-category"
+                  class="px-4 py-2 bg-slate-700 rounded-lg text-sm border border-slate-600
+                         hover:border-cyan-500 focus:outline-none focus:border-cyan-500 cursor-pointer"
+                >
+                  ${Object.entries(habitCategoryMeta).map(([k, v]) => `
+                    <option value="${k}">${v.icon} ${v.label}</option>
+                  `).join('')}
+                </select>
+                <button
+                  type="submit"
+                  class="md:col-span-4 px-6 py-2.5 rounded-lg text-sm font-medium
+                         bg-gradient-to-r from-cyan-500 to-blue-600
+                         text-white shadow-lg shadow-cyan-500/50
+                         hover:-translate-y-0.5 transition-all"
+                >
+                  💾 Simpan Kebiasaan
+                </button>
+              </form>
+            </div>
+          ` : ''}
+
+          <!-- Habit Cards -->
+          ${filtered.length === 0 ? `
+            <div class="text-center py-16">
+              <p class="text-5xl mb-4">${state.habits.length === 0 ? '📋' : '🔍'}</p>
+              <p class="text-lg font-semibold text-slate-300 mb-2">
+                ${state.habits.length === 0 ? 'Belum ada kebiasaan' : 'Tidak ada habit di kategori ini'}
+              </p>
+              <p class="text-sm text-slate-500">
+                ${state.habits.length === 0 ? 'Klik "+ Tambah Kebiasaan" untuk memulai! 🎯' : 'Coba pilih kategori lain atau tambah habit baru.'}
+              </p>
+            </div>
+          ` : filtered.map(habit => {
+            const isDoneToday = !!habit.completions[today];
+            const streak = getStreak(habit);
+            const bestStreak = getBestStreak(habit);
+            const rate = getCompletionRate(habit);
+
+            return `
+              <div class="group bg-slate-800/50 border ${isDoneToday ? 'border-green-500/40' : 'border-slate-700 hover:border-cyan-500/50'} rounded-xl p-5 mb-3 transition-all hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-0.5">
+                <div class="flex items-start gap-4">
+
+                  <button
+                    onclick="toggleCompletion(${habit.id})"
+                    class="flex-shrink-0 w-12 h-12 rounded-xl border-2 transition-all text-2xl flex items-center justify-center
+                           ${isDoneToday
+                             ? 'border-green-500 bg-green-500/20 text-green-400 scale-105'
+                             : 'border-slate-600 hover:border-cyan-500 text-slate-400 hover:text-cyan-400'
+                           }"
+                    title="${isDoneToday ? 'Tandai belum selesai' : 'Tandai selesai'}"
+                  >${isDoneToday ? '✅' : habit.emoji}</button>
+
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-3 flex-wrap">
+                      <h3 class="text-base font-bold text-white group-hover:text-cyan-400 transition-colors">${habit.name}</h3>
+                      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r ${habitCategoryMeta[habit.category].color} text-white">
+                        ${habitCategoryMeta[habit.category].label}
+                      </span>
+                      <button
+                        onclick="requestDelete(${habit.id})"
+                        class="ml-auto text-slate-600 hover:text-red-400 transition-colors text-base leading-none"
+                        title="Hapus kebiasaan"
+                      >🗑</button>
+                    </div>
+
+                    <div class="flex items-end gap-2 mb-3">
+                      ${last7.map(dateStr => `
+                        <div class="flex flex-col items-center gap-1">
+                          <div class="w-7 h-7 rounded-full border-2 transition-all ${
+                            habit.completions[dateStr]
+                              ? 'bg-gradient-to-br from-cyan-500 to-blue-600 border-cyan-400 shadow-sm shadow-cyan-500/50'
+                              : dateStr === today
+                                ? 'border-dashed border-slate-500 bg-slate-700/50'
+                                : 'border-slate-700 bg-slate-800/50'
+                          }"></div>
+                          <span class="text-xs text-slate-500">${formatDayLabel(dateStr)}</span>
+                        </div>
+                      `).join('')}
+                    </div>
+
+                    <div class="flex items-center gap-4 text-xs flex-wrap">
+                      <span class="text-slate-400">🔥 Streak: <span class="text-orange-400 font-bold">${streak} hari</span></span>
+                      <span class="text-slate-400">🏆 Terbaik: <span class="text-yellow-400 font-bold">${bestStreak} hari</span></span>
+                      <span class="text-slate-400">📊 30 hari: <span class="text-cyan-400 font-bold">${rate}%</span></span>
+                    </div>
+                  </div>
+                </div>
+
+                ${state.deleteConfirmId === habit.id ? `
+                  <div class="mt-4 pt-4 border-t border-red-500/30 flex items-center gap-3 flex-wrap">
+                    <p class="text-sm text-red-400 flex-1">Hapus "<strong>${habit.name}</strong>"? Ini tidak bisa dibatalkan.</p>
+                    <button onclick="confirmDelete(${habit.id})" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-500 text-white transition-all">Ya, Hapus</button>
+                    <button onclick="cancelDelete()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-700 hover:bg-slate-600 text-slate-300 transition-all">Batal</button>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('')}
+
+          <div class="mt-8 p-4 bg-slate-800/50 rounded-lg border border-slate-700 text-xs text-slate-400">
             <p>
-              📊 <strong>Sources:</strong> Google Trends (ID) | TikTok | Twitter/X | Reddit | News APIs
+              ✅ <strong>Habit Tracker</strong> — Data tersimpan di browser (localStorage)
               <br/>
-              🔄 <strong>Status:</strong> LIVE - Real data via GitHub Actions (updated hourly)
+              🔥 Streak dihitung dari hari berturut-turut yang berhasil diselesaikan
               <br/>
-              🎯 <strong>Scoring:</strong> Momentum (growth rate) + Novelty (newness) + Volume
+              📊 Konsistensi dihitung dari 30 hari terakhir sejak kebiasaan dibuat
             </p>
           </div>
         </div>
       `;
-
-      document.getElementById('app').innerHTML = html;
     }
 
-    // Update state & re-render
+    // ============================================
+    // RENDER - MAIN
+    // ============================================
+    function render() {
+      document.getElementById('app').innerHTML = `
+        <div class="min-h-screen p-6">
+          ${renderHeader()}
+          ${state.activeTab === 'habits' ? renderHabits() : renderDashboard()}
+        </div>
+      `;
+    }
+
     function updateState(updates) {
       state = { ...state, ...updates };
       render();
@@ -317,9 +715,9 @@
     // ============================================
     // INIT
     // ============================================
+    state.habits = loadHabits();
     loadData();
 
-    // Refresh every hour
     setInterval(loadData, 3600000);
   </script>
 </body>
